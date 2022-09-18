@@ -1,11 +1,14 @@
+from datetime import datetime
 from os import path, getcwd, remove, mkdir
+from urllib import request
 from requests import get
 from icalendar import Calendar
 import sys
 import sqlite3
 
 
-cal_path = path.join(getcwd(), "./assets/calendar.ics")
+cal_path = path.join(getcwd(), "./assets/calendar_cache.ics")
+db_path = path.join(getcwd(), "./data/database.db")
 
 
 def create_calendar(config):
@@ -24,9 +27,9 @@ def create_calendar(config):
         print("Database Updated !")
 
 
-
 def check_calendar(config):
     if not path.exists(cal_path): return False
+    if not path.exists(db_path): return False
     if config["url"] != config["url_old"]: return False
     with open(cal_path, "r", encoding="utf-8") as file:
         if len(file.readline()) <= 0: return False
@@ -35,6 +38,7 @@ def check_calendar(config):
     
 
 def download(url):
+
     with open(cal_path, "wb") as f:
         response = get(url, stream=True)
         total_length = response.headers.get('content-length')
@@ -52,9 +56,8 @@ def download(url):
                 sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
                 sys.stdout.flush()
 
-def ics_as_database():
 
-    db_path = path.join(getcwd(), "./data/database.db")
+def ics_as_database():
 
     if path.exists(db_path): remove(db_path)
     if not path.exists(path.join(getcwd(), "./data/")): mkdir(path.join(getcwd(), "./data/"))
@@ -62,18 +65,26 @@ def ics_as_database():
 
     connexion.execute("CREATE TABLE IF NOT EXISTS events (start TIMESTAMP, end TIMESTAMP, place VARCHAR(255), title VARCHAR(255), desc VARCHAR(1024));")
 
+    today = datetime.today().date()
+
     with open(cal_path, "rb") as f:
         calendar = Calendar.from_ical(f.read())
         events = [
-            tuple(comp.get(info) for info in [
-                "dtstart", "dtend", "location", "summary", "description"
-            ])
-            for comp in calendar.walk()
+            (
+                comp.get("dtstart").dt,
+                comp.get("dtend").dt,
+                str(comp.get("location")[0]),
+                str(comp.get("summary")),
+                str(comp.get("description")),
+            )
+            for comp in calendar.walk() if comp.name == "VEVENT" and comp.get('dtstart').dt.date() >= today
         ]
-        print(events)
-        #connexion.execute("INSERT INTO events (start, end, place, title, desc) VALUES (?, ?, ?, ?, ?)", events)
+        connexion.executemany("INSERT INTO events VALUES (?, ?, ?, ?, ?)", events)
+        connexion.commit()
     
     connexion.close()
 
+
 def update_database():
-    pass
+    connexion = sqlite3.connect(db_path)
+    connexion.execute("DELETE FROM events WHERE date('now') >= end")
