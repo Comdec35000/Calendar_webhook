@@ -1,7 +1,6 @@
 import requests
 import schedule
 import time
-import threading
 
 from src.config import get_config
 from src.calendar import create_calendar
@@ -9,12 +8,15 @@ from src.discord import check_current, check_for_week, url
 
 
 def lifecycle(config):
-    schedule.every(5).minutes.do(check_current)
-    schedule.every().sunday.do(check_for_week)
+    schedule.every(5).seconds.do(check_current, args=config)
+    schedule.every().sunday.at("00:00").do(check_for_week, args=config)
 
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
+    try:
+        while True:
+            schedule.run_pending()
+            time.sleep(60)
+    except KeyboardInterrupt:
+        pass
 
 if __name__ == "__main__" :
     config = get_config()
@@ -27,5 +29,6 @@ if __name__ == "__main__" :
     requests.post(url(config), payload)
 
     print("Starting the application lifecycle...")
-    thread = threading.Thread(target=lifecycle, args=config, name="lifecycle")
-    thread.start()
+    lifecycle(config)
+    #thread = threading.Thread(target=lifecycle, args=(config,), name="lifecycle")
+    #thread.start()

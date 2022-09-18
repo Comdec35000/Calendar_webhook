@@ -1,3 +1,4 @@
 **/__pycache__/
 assets/calendar_cache.ics
 data/
+test.py
