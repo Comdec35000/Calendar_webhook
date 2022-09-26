@@ -8,25 +8,24 @@ from src.discord import check_current, check_for_week, url
 
 
 def lifecycle(config):
-    schedule.every(5).seconds.do(check_current, args=config)
-    schedule.every().sunday.at("00:00").do(check_for_week, args=config)
+    schedule.every().minutes.do(check_current, config=config)
+    schedule.every().days.at("00:00").do(check_for_week, config=config)
+    schedule.every().monday.at("00:00").do(check_for_week, config=config)
+    schedule.every().seconds.do(lambda: print("aaaa"))
 
-    try:
-        while True:
-            schedule.run_pending()
-            time.sleep(60)
-    except KeyboardInterrupt:
-        pass
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 if __name__ == "__main__" :
     config = get_config()
     create_calendar(config)
 
-    payload = {
+    """payload = {
         "username" : "placeholder",
         "embeds" : [{"title" : "Application restarted !"}]
     }
-    requests.post(url(config), payload)
+    requests.post(url(config), payload)"""
 
     print("Starting the application lifecycle...")
     lifecycle(config)

@@ -15,8 +15,7 @@ def get_config():
 
 def validate_config(config):
     try:
-        if config["token"] == "": return False
-        if config["id"] == "": return False
+        if config["webhook"] == "": return False
         if config["url"] == "" or not str(config["url"]).startswith("https://") : return False
 
         print("\nSuccessfully validated the configuration !")
@@ -26,13 +25,11 @@ def validate_config(config):
 
 def create_config(old_cfg: dict):
     print("\n\nSome config data is missing ! Let's supplement it !\n")
-    app_token = input("Please enter here your application's token ! \n > ")
-    app_id = input("Please enter here your applications's id ! \n > ")
+    webhook = input("Please enter here your webhook's link ! \n > ")
     url = input("Please paste here the direct link to your .ics file !\n > ")
 
     config = {
-        "token": app_token,
-        "id": app_id,
+        "webhook": webhook,
         "url": url,
         "url_old": old_cfg.get("url") if old_cfg.get("url") != None else ""
     }

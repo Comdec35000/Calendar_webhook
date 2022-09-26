@@ -13,6 +13,7 @@ db_path = path.join(getcwd(), "./data/database.db")
 
 def create_calendar(config):
     if not check_calendar(config): 
+        print(check_calendar)
         print("The Calendar have not been downloaded yet !")
         print("Downloading the calendar...")
         download(config["url"])
@@ -44,7 +45,7 @@ def download(url):
         total_length = response.headers.get('content-length')
 
         # Displays a loading bar if the total length is too long
-        if total_length is None: # no content length header
+        if total_length is None: # No content length header
             f.write(response.content)
         else:
             dl = 0
@@ -63,7 +64,7 @@ def ics_as_database():
     if not path.exists(path.join(getcwd(), "./data/")): mkdir(path.join(getcwd(), "./data/"))
     connexion = sqlite3.connect(db_path)
 
-    connexion.execute("CREATE TABLE IF NOT EXISTS events (start TIMESTAMP, end TIMESTAMP, place VARCHAR(255), title VARCHAR(255), desc VARCHAR(1024));")
+    connexion.execute("CREATE TABLE IF NOT EXISTS events (start TIMESTAMP, end TIMESTAMP, place VARCHAR(255), title VARCHAR(255), desc VARCHAR(1024))")
 
     today = datetime.today().date()
 
@@ -88,3 +89,4 @@ def ics_as_database():
 def update_database():
     connexion = sqlite3.connect(db_path)
     connexion.execute("DELETE FROM events WHERE date('now') >= end")
+    connexion.commit()
