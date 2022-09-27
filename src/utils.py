@@ -16,8 +16,8 @@ def as_timestamp(date):
     return int(time.mktime(datetime.fromisoformat(date).timetuple()))
 
 def to_format(text):
-    k = re.sub(r"(\[|\]|\s)", 
-                lambda m : "_" if m.group(0) == " " else "", 
+    k = re.sub(r"\W", 
+                lambda m : "_" if m.group(0) == " " or m.group(0) == "'" or m.group(0) == "/" else "", 
                 text.group(0).lower())
 
     return prefixs[k] if k in prefixs.keys() else ""
